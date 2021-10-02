@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@tic-tac-toe-view-model/view-model": ["libs/view-model/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
