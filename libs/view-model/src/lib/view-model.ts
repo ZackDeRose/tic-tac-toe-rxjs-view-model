@@ -4,10 +4,9 @@ import {
   filter,
   map,
   merge,
-  multicast,
   Observable,
-  refCount,
   scan,
+  share,
   startWith,
   Subject,
   switchMap,
@@ -15,9 +14,9 @@ import {
 import {
   Board,
   SpaceContent,
+  SpaceCoordinates,
   TicTacToeViewModel,
   TicTacToeViewModelParams,
-  SpaceCoordinates,
 } from './types';
 
 export function createTicTacToeViewModel({
@@ -42,8 +41,7 @@ export function createTicTacToeViewModel({
     )
   );
   const actions$ = merge(userClickActions$, userResetActions$).pipe(
-    multicast(actionsSubject),
-    refCount()
+    share({ connector: () => actionsSubject })
   );
 
   const state$ = actions$.pipe(
@@ -52,23 +50,22 @@ export function createTicTacToeViewModel({
     distinctUntilChanged()
   );
 
-  userResetActions$
-    .pipe(
-      startWith(undefined),
-      switchMap(() =>
-        state$.pipe(
-          filter((x) => x.turn === `computer's turn`),
-          delay(2000),
-          map((state) => ({
-            type: 'ai action' as const,
-            space: ai({ board: state.board, aiLetter: 'o' }),
-          })),
-          multicast(actionsSubject),
-          refCount()
-        )
+  const aiActions$ = userResetActions$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      state$.pipe(
+        filter((x) => x.turn === `computer's turn`),
+        delay(2000),
+        map((state) => ({
+          type: 'ai action' as const,
+          space: ai({ board: state.board, aiLetter: 'o' }),
+        })),
+        share({ connector: () => actionsSubject })
       )
     )
-    .subscribe();
+  );
+
+  aiActions$.subscribe();
 
   return state$;
 }
