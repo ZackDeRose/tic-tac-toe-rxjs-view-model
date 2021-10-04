@@ -1,10 +1,10 @@
+import { DeRxJSViewModel } from '@derxjs/view-model';
 import {
   delay,
   distinctUntilChanged,
   filter,
   map,
   merge,
-  Observable,
   scan,
   share,
   startWith,
@@ -16,14 +16,13 @@ import {
   SpaceContent,
   SpaceCoordinates,
   TicTacToeViewModel,
-  TicTacToeViewModelParams,
+  TicTacToeViewModelInputs,
 } from './types';
 
-export function createTicTacToeViewModel({
-  userSpaceClickEvents$,
-  userResetClickEvents$,
-  ai,
-}: TicTacToeViewModelParams): Observable<TicTacToeViewModel> {
+export const ticTacToeViewModel$: DeRxJSViewModel<
+  TicTacToeViewModelInputs,
+  TicTacToeViewModel
+> = ({ userSpaceClickEvents$, userResetClickEvents$, ai }) => {
   const actionsSubject = new Subject<Action>();
   const userClickActions$ = userSpaceClickEvents$.pipe(
     map(
@@ -68,7 +67,7 @@ export function createTicTacToeViewModel({
   aiActions$.subscribe();
 
   return state$;
-}
+};
 
 interface UserSpaceClickAction {
   type: 'user space click';

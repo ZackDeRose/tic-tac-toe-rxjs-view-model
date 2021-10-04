@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-export interface TicTacToeViewModelParams {
+export interface TicTacToeViewModelInputs {
   userSpaceClickEvents$: Observable<SpaceCoordinates>;
   userResetClickEvents$: Observable<void>;
   ai: TicTacToeAi;

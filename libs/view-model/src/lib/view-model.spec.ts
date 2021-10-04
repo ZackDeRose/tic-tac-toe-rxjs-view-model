@@ -1,6 +1,6 @@
 import { TestScheduler } from 'rxjs/testing';
 import { TicTacToeViewModel, SpaceCoordinates, TicTacToeAi } from './types';
-import { createInitialViewModel, createTicTacToeViewModel } from './view-model';
+import { createInitialViewModel, ticTacToeViewModel$ } from './view-model';
 
 describe('viewModel', () => {
   let testScheduler: TestScheduler;
@@ -32,7 +32,7 @@ describe('viewModel', () => {
       const userBoardClicks = cold<SpaceCoordinates>('------');
       const userResetClicks = cold<void>('------');
       const expected = cold('a-----', { a: firstUserState });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -73,7 +73,7 @@ describe('viewModel', () => {
         b: afterUserClick,
         c: afterComputerMoves,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -119,7 +119,7 @@ describe('viewModel', () => {
         b: afterUserClick,
         c: afterComputerMoves,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -160,7 +160,7 @@ describe('viewModel', () => {
         b: afterUserClick,
         c: afterComputerMoves,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -247,7 +247,7 @@ describe('viewModel', () => {
         e: afterComputerSecondMove,
         f: userWins,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -343,7 +343,7 @@ describe('viewModel', () => {
         f: afterUsersThirdClick,
         g: computerWins,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -474,7 +474,7 @@ describe('viewModel', () => {
           j: tieGame,
         }
       );
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
@@ -515,7 +515,7 @@ describe('viewModel', () => {
         b: afterUserClick,
         c: afterComputerMoves,
       });
-      const result = createTicTacToeViewModel({
+      const result = ticTacToeViewModel$({
         userSpaceClickEvents$: userBoardClicks,
         userResetClickEvents$: userResetClicks,
         ai: testAiFunction,
