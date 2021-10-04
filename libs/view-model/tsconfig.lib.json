@@ -4,7 +4,7 @@
     "outDir": "../../dist/out-tsc",
     "declaration": true,
     "types": [],
-    "lib": ["ES2019.Array"]
+    "lib": ["ES2019.Array", "dom", "es2015"]
   },
   "include": ["**/*.ts"],
   "exclude": ["**/*.spec.ts"]

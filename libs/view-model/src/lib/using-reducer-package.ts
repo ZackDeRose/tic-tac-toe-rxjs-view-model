@@ -1,93 +1,64 @@
 import { DeRxJSViewModel } from '@derxjs/view-model';
-import {
-  delay,
-  distinctUntilChanged,
-  filter,
-  map,
-  merge,
-  scan,
-  share,
-  startWith,
-  Subject,
-  switchMap,
-} from 'rxjs';
-import {
-  Board,
-  SpaceContent,
-  SpaceCoordinates,
-  TicTacToeViewModel,
-  TicTacToeViewModelInputs,
-} from './types';
+import { Observable, Subject } from 'rxjs';
+import { delay, filter, map, startWith, switchMap } from 'rxjs/operators';
+import { Board, SpaceContent, SpaceCoordinates } from '..';
+import { TicTacToeViewModel, TicTacToeViewModelInputs } from './types';
+import { createInitialViewModel } from './view-model';
+import { Action, createDeRxJSReducer, actionize } from '@derxjs/reducer';
 
-export const ticTacToeViewModel$: DeRxJSViewModel<
+type TicTacToeViewModelActions =
+  | Action<'user space click', { space: SpaceCoordinates }>
+  | { type: 'user reset click' }
+  | Action<'ai action', { space: SpaceCoordinates }>;
+
+export const ticTacToeReducerViewModel$: DeRxJSViewModel<
   TicTacToeViewModelInputs,
   TicTacToeViewModel
-> = ({ userSpaceClickEvents$, userResetClickEvents$, ai }) => {
-  const actionsSubject = new Subject<Action>();
-  const userClickActions$ = userSpaceClickEvents$.pipe(
-    map(
-      (space): UserSpaceClickAction => ({
-        type: 'user space click',
-        space: space,
-      })
-    )
-  );
-  const userResetActions$ = userResetClickEvents$.pipe(
-    map(
-      (): UserResetAction => ({
-        type: 'user reset click',
-      })
-    )
-  );
-  const actions$ = merge(userClickActions$, userResetActions$).pipe(
-    share({ connector: () => actionsSubject })
-  );
-
-  const state$ = actions$.pipe(
-    scan(reducer, createInitialViewModel()),
-    startWith<TicTacToeViewModel>(createInitialViewModel()),
-    distinctUntilChanged()
-  );
-
-  const aiActions$ = userResetActions$.pipe(
-    startWith(undefined),
-    switchMap(() =>
-      state$.pipe(
-        filter((x) => x.turn === `computer's turn`),
-        delay(2000),
-        map((state) => ({
-          type: 'ai action' as const,
-          space: ai({ board: state.board, aiLetter: 'o' }),
-        })),
-        share({ connector: () => actionsSubject })
+> = ({
+  userResetClickEvents$,
+  userSpaceClickEvents$,
+  ai,
+}: TicTacToeViewModelInputs): Observable<TicTacToeViewModel> => {
+  const aiActions$ = (
+    state$: Observable<TicTacToeViewModel>,
+    _actions: Subject<TicTacToeViewModelActions>
+  ) =>
+    userResetClickEvents$.pipe(
+      startWith(undefined),
+      switchMap(() =>
+        state$.pipe(
+          filter((x) => x.turn === `computer's turn`),
+          delay(2000),
+          map((state) => ({
+            type: 'ai action' as const,
+            space: ai({ board: state.board, aiLetter: 'o' }),
+          }))
+        )
       )
-    )
-  );
-
-  aiActions$.subscribe();
-
+    );
+  const effects = [aiActions$];
+  const state$: Observable<TicTacToeViewModel> = createDeRxJSReducer({
+    reducer,
+    effects,
+    sideEffects: [],
+    incomingObservables: {
+      userSpaceClickEvents: userSpaceClickEvents$.pipe(
+        map((space) => ({ space })),
+        actionize('user space click')
+      ),
+      userResetClickEvents: userResetClickEvents$.pipe(
+        map(() => undefined),
+        actionize('user reset click')
+      ),
+    },
+    initialState: createInitialViewModel(),
+  });
   return state$;
 };
 
-interface UserSpaceClickAction {
-  type: 'user space click';
-  space: SpaceCoordinates;
-}
-
-interface UserResetAction {
-  type: 'user reset click';
-}
-
-interface AiAction {
-  type: 'ai action';
-  space: SpaceCoordinates;
-}
-
-type Action = UserSpaceClickAction | UserResetAction | AiAction;
-
-export function reducer(
+function reducer(
   state: TicTacToeViewModel,
-  action: Action
+  action: TicTacToeViewModelActions
 ): TicTacToeViewModel {
   switch (action.type) {
     case 'user reset click': {
@@ -127,7 +98,7 @@ export function reducer(
       }
     }
     case 'ai action': {
-      const newBoard = nextBoard(state.board, action.space, 'o');
+      const newBoard = nextBoard(state.board, (action as any).space, 'o');
       const result = isGameOver(newBoard);
       switch (result) {
         case false: {
@@ -232,15 +203,4 @@ function isGameOver(
   return (board.flat() as SpaceContent[]).some((contents) => contents === '')
     ? false
     : 'tie game';
-}
-
-export function createInitialViewModel(): TicTacToeViewModel {
-  return {
-    board: [
-      ['', '', ''],
-      ['', '', ''],
-      ['', '', ''],
-    ],
-    turn: 'your turn',
-  };
 }
